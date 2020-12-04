@@ -1,3 +1,7 @@
+# Data Files
+NYPD_crime_data.csv
+NYC_crime_data_2016.csv
+
 # History files
 .Rhistory
 .Rapp.history

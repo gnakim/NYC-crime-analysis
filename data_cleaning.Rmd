@@ -1,0 +1,81 @@
+---
+title: "data_cleaning"
+author: "Geena Kim"
+date: "12/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor)
+library(naniar)
+
+```
+
+```{r load_data}
+
+# Read in the raw data, specifying each variable's type
+raw_data <- read_csv('shiny/raw_data/NYPD_crime_data.csv',
+                 col_types = cols(
+                   .default = col_character(),
+                   CMPLNT_NUM = col_double(),
+                   ADDR_PCT_CD = col_double(),
+                   CMPLNT_FR_TM = col_time(format = ""),
+                   CMPLNT_TO_TM = col_time(format = ""),
+                   HOUSING_PSA = col_double(),
+                   JURISDICTION_CODE = col_double(),
+                   KY_CD = col_double(),
+                   PD_CD = col_double(),
+                   TRANSIT_DISTRICT = col_double(),
+                   X_COORD_CD = col_double(),
+                   Y_COORD_CD = col_double(),
+                   Latitude = col_double(),
+                   Longitude = col_double()
+                   ))
+# Take a look at your data by running the below code. There's more information regarding this data in raw_data/data_info
+# glimpse(raw_data)
+# summary(raw_data)
+# head(raw_data, 10)
+```
+
+```{r clean_data}
+
+data <- raw_data %>%
+  clean_names() %>%
+  select(-c(addr_pct_cd, hadevelopt, housing_psa, transit_district, 
+             x_coord_cd:new_georeferenced_column, patrol_boro, pd_cd, pd_desc,
+            jurisdiction_code, ky_cd, cmplnt_to_dt, cmplnt_to_tm) )%>%
+  filter(juris_desc == "N.Y. POLICE DEPT")
+
+
+data_people <- raw_data %>%
+  clean_names() %>%
+  filter(juris_desc == "N.Y. POLICE DEPT") %>%
+  select(law_cat_cd, susp_age_group, susp_race, susp_sex, vic_age_group, vic_race, vic_sex, ofns_desc)
+
+data_people
+# Executed the below code to determine which Na values I should drop vs which columns I should just entirely drop.
+# colSums(is.na(data))
+
+# There was only one observation where vic_age_group was NA. This same observation was the only NA value in vic_race and vic_sex as well, so I dropped this individual NA observation.
+
+colSums(is.na(data))
+
+```
+
+```{r suspectplot}
+data %>%
+  select(susp_age_group, susp_race, susp_sex) %>%
+  filter(susp_age_group != "UNKNOWN", susp_race != "UNKNOWN", susp_sex != "U") %>%
+  filter(!(susp_age_group %in% c("-928", "-942", "-965", "1925", "2019"))) %>%
+  group_by(susp_race) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  ggplot(aes(x = fct_reorder(susp_race, count), y = count)) +
+  geom_col() +
+  labs(title = "Characteristics of of Crime Suspects",
+           y = "Number of Crimes Committed within' Specified Group",
+           x = "susp_race") +
+  theme_bw()
+```
+
