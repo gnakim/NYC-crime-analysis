@@ -5,8 +5,8 @@ account: geena-kim
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3344937
-bundleId: 3938107
+bundleId: 3941443
 url: https://geena-kim.shinyapps.io/NYC-crime-analysis/
-when: 1607002510.06597
+when: 1607055825.12721
 asMultiple: FALSE
 asStatic: FALSE
