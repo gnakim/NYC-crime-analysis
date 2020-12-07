@@ -3,6 +3,16 @@
 library(tidyverse)
 library(janitor)
 
+# I first worked on this file in a scrap rmd file so that I could streamline the
+# process of fixing R console warnings. I used the warnings when setting the
+# col_types. I work between using the compressed RDS file and just having the
+# global variable read from the data set. The RDS using less space, which is
+# important for pushing onto git, but just using the read in variable is more
+# intuitive, so I just put the large file's name into the gitignore. Once I'm
+# done witht hte project, I plan on switching the crime_data to read from the
+# RDS file for space optimization. The clean_names() function makes all the
+# column names look nice and uniform.
+
 crime_data <- read_csv('NYPD_crime_data.csv',
                        col_types = cols(
                          .default = col_character(),
