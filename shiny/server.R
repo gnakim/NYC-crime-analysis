@@ -121,13 +121,46 @@ shinyServer(function(input, output){
     })
     
     output$modelPlot <- renderPlot({
-        fitted_model <- crime_data %>%
-            select(law_cat_cd, susp)
-            stan_glm(formula = ,
+        model_data <- crime_data %>%
+            select(cmplnt_to_tm) %>%
+            drop_na() %>%
+            mutate(time_chr = as.character(cmplnt_to_tm)) %>%
+            mutate(time_sub = map_chr(time_chr, ~ substr(., 1, 2))) %>%
+            mutate(time_numeric = as.numeric(time_sub)) %>%
+            select(time_numeric)
+        
+        fitted_model <- model_data %>%
+            stan_glm(formula = time_numeric ~ 1,
                      family = gaussian(),
-                     refresh = 0)
+                     refresh = 0) 
+        
+        fitted_model %>%
+            as_tibble() %>%
+            rename(mu = `(Intercept)`) %>% 
+            ggplot(aes(x = mu)) +
+            geom_histogram(aes(y = after_stat(count/sum(count))), 
+                           bins = 30, 
+                           color = "white",
+                           fill = "steelblue") +
+            labs(title = "Posterior Probability Distribution",
+                 subtitle = "Average Time When Crime Takes Place",
+                 x = "Hours",
+                 y = "Probability") +
+            theme_bw()
     })
     
-    
+    # output$stan_glm_pic <- renderImage({
+    #     list(src = "stan_glm_pic", 
+    #          width = 250, 
+    #          height = 250, 
+    #          alt = "stan_glm output results") 
+    # }, deleteFile = FALSE)
+    # 
+    # output$population <- renderImage({
+    #     list(src = "population", 
+    #          width = 250, 
+    #          height = 250, 
+    #          alt = "NYC population") 
+    # }, deleteFile = FALSE)
     
 })

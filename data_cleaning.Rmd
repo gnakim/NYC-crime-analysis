@@ -16,23 +16,29 @@ library(naniar)
 ```{r load_data}
 
 # Read in the raw data, specifying each variable's type
-raw_data <- read_csv('shiny/raw_data/NYPD_crime_data.csv',
-                 col_types = cols(
-                   .default = col_character(),
-                   CMPLNT_NUM = col_double(),
-                   ADDR_PCT_CD = col_double(),
-                   CMPLNT_FR_TM = col_time(format = ""),
-                   CMPLNT_TO_TM = col_time(format = ""),
-                   HOUSING_PSA = col_double(),
-                   JURISDICTION_CODE = col_double(),
-                   KY_CD = col_double(),
-                   PD_CD = col_double(),
-                   TRANSIT_DISTRICT = col_double(),
-                   X_COORD_CD = col_double(),
-                   Y_COORD_CD = col_double(),
-                   Latitude = col_double(),
-                   Longitude = col_double()
-                   ))
+crime_data <- read_csv('shiny/NYPD_crime_data.csv',
+                       col_types = cols(
+                         .default = col_character(),
+                         CMPLNT_NUM = col_double(),
+                         ADDR_PCT_CD = col_double(),
+                         CMPLNT_FR_TM = col_time(format = ""),
+                         CMPLNT_TO_TM = col_time(format = ""),
+                         HOUSING_PSA = col_double(),
+                         JURISDICTION_CODE = col_double(),
+                         KY_CD = col_double(),
+                         PD_CD = col_double(),
+                         TRANSIT_DISTRICT = col_double(),
+                         X_COORD_CD = col_double(),
+                         Y_COORD_CD = col_double(),
+                         Latitude = col_double(),
+                         Longitude = col_double())) %>%
+  clean_names() %>%
+  filter(juris_desc == "N.Y. POLICE DEPT") %>%
+  select(cmplnt_num,law_cat_cd, ofns_desc, pd_desc,
+         susp_race, susp_age_group, susp_sex, vic_race, vic_age_group, vic_sex,
+         boro_nm, parks_nm, prem_typ_desc,cmplnt_to_dt, cmplnt_to_tm,
+         crm_atpt_cptd_cd)
+
 # Take a look at your data by running the below code. There's more information regarding this data in raw_data/data_info
 # glimpse(raw_data)
 # summary(raw_data)
@@ -78,4 +84,38 @@ data %>%
            x = "susp_race") +
   theme_bw()
 ```
+
+```{r}
+model_data <- crime_data %>%
+            select(cmplnt_to_tm) %>%
+            drop_na() %>%
+            mutate(time_chr = as.character(cmplnt_to_tm)) %>%
+            mutate(time_sub = map_chr(time_chr, ~ substr(., 1, 2))) %>%
+            mutate(time_numeric = as.numeric(time_sub)) %>%
+  select(time_numeric)
+glimpse(model_data)
+
+
+ fitted_model <- model_data %>%
+            stan_glm(formula = time_numeric ~ 1,
+                     family = gaussian(),
+                     refresh = 0) 
+fitted_model
+        fitted_model %>%
+          as_tibble() %>%
+            rename(mu = `(Intercept)`) %>% 
+            ggplot(aes(x = mu)) +
+            geom_histogram(aes(y = after_stat(count/sum(count))), 
+                           binwidth = 10, 
+                           color = "white",
+                           fill = "steelblue") +
+            labs(title = "Posterior Probability Distribution",
+                 subtitle = "Average Time Crime Takes Place",
+                 x = "Hours",
+                 y = "Probability") +
+            theme_classic()
+print(fitted_model, digits = 5)
+```
+
+
 

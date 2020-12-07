@@ -55,35 +55,44 @@ shinyUI(dashboardPage(
                                             choice = c("Suspect's Age Group", 
                                                        "Suspect's Race", 
                                                        "Suspect's Sex"),
-                                            selected = "Suspect's Race")),
+                                            selected = "Suspect's Age Group")),
                     fluidRow(plotOutput("victimPlot")),
                     fluidRow(selectizeInput(inputId = "selectedVic",
                                             label = "Select Item to Display",
                                             choice = c("Victim's Age Group", 
                                                        "Victim's Race", 
                                                        "Victim's Sex"),
-                                            selected = "Victim's Race")),
+                                            selected = "Victim's Age Group")),
                     fluidRow(plotOutput("placePlot")),
                     fluidRow(selectizeInput(inputId = "selectedPlace",
                                             label = "Select Item to Display",
                                             choice = c("Borough", "Park Name", 
                                                        "General Location"), 
                                             # c("name" = ugly)
-                                            selected = "Borough"))),
+                                            selected = "Borough")),
+                    column(4,
+                           imageOutput("population"))),
             
             tabItem(tabName = "data",
                     fluidRow(box(DT::dataTableOutput("table"), width = 12))),
+            
             tabItem(tabName = "model",
-                    fluidRow(p("STAN GLM MODEL HERE")),
-                    fluidRow(plotOutput("modelPlot"))),
+                    fluidRow(h3("Statistical Model"),
+                             p("This one parameter model was generated using stan_glm model. The formula used was the ending time of the crime as a function of a constant"),
+                             p("The median of the intercept was 12.98539, which would translate to 1pm EDT. This is the time at which most crimes are likely to happen. The MAD_SD of the intercept was 0.01177, translating to a high degree of preciseness within' the dataset"),
+                             p("The median of the auxilary parameter, sigma, was 6.32472 while its MAD_SD was 0.00882")),
+                    fluidRow(plotOutput("modelPlot")),
+                    column(4,
+                           imageOutput("stan_glm_pic"))),
+            
+            
             tabItem(tabName = "about",
                     fluidRow(h3("Project Background and Motivations"),
-                             p("This project analyzes the NYPD crime reports from 2019-2020. 
-                               I specifically analyze th race, sex, and age of people involved in these crime reports, the suspect and victim.
-                               There is also a graph that analyzes the location of where the crime is committed. You can toggle between the boroughs,
-                               parks, and buildings in NYC."),
+                             p("This project analyzes the NYPD crime reports from 2019-2020. I look specifically at the observations under the NYPD jurisdiction
+                               The plots compare between the race, sex, and age of individuals involved in these crime reports: the suspect and victim.
+                               I also look into the location and times crimes most likely take place. The locations look at boroughs, parks, and buildings in NYC."),
                              h3("About Me"),
-                             p("Hi! I'm Geena and I'm a sophomore at Harvard University
+                             p("Hi! I'm Geena Kim and I'm a sophomore at Harvard University
                                studying computer science and chemistry."),
                              p("You can reach me at gkim@college.harvard.edu.")))
         )
