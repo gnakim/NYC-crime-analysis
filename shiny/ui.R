@@ -2,7 +2,7 @@ library(DT)
 library(shiny)
 library(shinydashboard)
 
-crime_data <- readRDS("crime_data.RDS")
+#crime_data <- readRDS("crime_data.RDS")
 
 shinyUI(dashboardPage(
     dashboardHeader(title = "NYC Crime Report Analysis"),
@@ -27,18 +27,21 @@ shinyUI(dashboardPage(
                     fluidRow(plotOutput("suspectPlot")),
                     fluidRow(selectizeInput(inputId = "selectedSus",
                                             label = "Select Item to Display",
-                                            choice = c("susp_age_group", "susp_race", "susp_sex"), # c("name" = ugly)
-                                            selected = "susp_race")),
+                                            # choice = c("susp_age_group", "susp_race", "susp_sex"), # c("name" = ugly)
+                                            choice = c("Suspect's Age Group", "Suspect's Race", "Suspect's Sex"),
+                                            selected = "Suspect's Race")),
                     fluidRow(plotOutput("victimPlot")),
                     fluidRow(selectizeInput(inputId = "selectedVic",
                                             label = "Select Item to Display",
-                                            choice = c("vic_age_group", "vic_race", "vic_sex"), # c("name" = ugly)
-                                            selected = "vic_race")),
+                                            # choice = c("vic_age_group", "vic_race", "vic_sex"), # c("name" = ugly)
+                                            choice = c("Victim's Age Group", "Victim's Race", "Victim's Sex"),
+                                            selected = "Victim's Race")),
                     fluidRow(plotOutput("placePlot")),
                     fluidRow(selectizeInput(inputId = "selectedPlace",
                                             label = "Select Item to Display",
-                                            choice = c("boro_nm", "parks_nm", "prem_typ_desc"), # c("name" = ugly)
-                                            selected = "boro_nm"))),
+                                            # choice = c("boro_nm", "parks_nm", "prem_typ_desc"),
+                                            choice = c("Borough", "Park Name", "General Location"), # c("name" = ugly)
+                                            selected = "Borough"))),
             tabItem(tabName = "data",
                     fluidRow(box(DT::dataTableOutput("table"), width = 12))),
             tabItem(tabName = "model",
