@@ -9,7 +9,7 @@ library(janitor)
 # global variable read from the data set. The RDS using less space, which is
 # important for pushing onto git, but just using the read in variable is more
 # intuitive, so I just put the large file's name into the gitignore. Once I'm
-# done witht hte project, I plan on switching the crime_data to read from the
+# done with the project, I plan on switching the crime_data to read from the
 # RDS file for space optimization. The clean_names() function makes all the
 # column names look nice and uniform.
 
@@ -36,5 +36,5 @@ crime_data <- read_csv('NYPD_crime_data.csv',
          boro_nm, parks_nm, prem_typ_desc,cmplnt_to_dt, cmplnt_to_tm,
          crm_atpt_cptd_cd)
  
-# saveRDS(crime_data, "crime_data.RDS")
+saveRDS(crime_data, "crime_data.RDS")
 

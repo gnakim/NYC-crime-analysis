@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(janitor)
 library(naniar)
+library(gt)
 
 ```
 
@@ -86,18 +87,19 @@ data %>%
 ```
 
 ```{r}
+head(crime_data, 10)
 model_data <- crime_data %>%
-            select(cmplnt_to_tm) %>%
-            drop_na() %>%
-            mutate(time_chr = as.character(cmplnt_to_tm)) %>%
-            mutate(time_sub = map_chr(time_chr, ~ substr(., 1, 2))) %>%
-            mutate(time_numeric = as.numeric(time_sub)) %>%
-  select(time_numeric)
+  select(law_cat_cd, cmplnt_to_tm) %>%
+  drop_na() %>%
+  mutate(time_chr = as.character(cmplnt_to_tm)) %>%
+  mutate(time_sub = map_chr(time_chr, ~ substr(., 1, 2))) %>%
+  mutate(time_numeric = as.numeric(time_sub)) %>%
+  select(law_cat_cd, time_numeric)
 glimpse(model_data)
 
 
  fitted_model <- model_data %>%
-            stan_glm(formula = time_numeric ~ 1,
+            stan_glm(formula = time_numeric ~ law_cat_cd - 1,
                      family = gaussian(),
                      refresh = 0) 
 fitted_model
@@ -106,7 +108,20 @@ fitted_model
             rename(mu = `(Intercept)`) %>% 
             ggplot(aes(x = mu)) +
             geom_histogram(aes(y = after_stat(count/sum(count))), 
-                           binwidth = 10, 
+                           bins = 20, 
+                           color = "white",
+                           fill = "steelblue") +
+            labs(title = "Posterior Probability Distribution",
+                 subtitle = "Average Time Crime Takes Place",
+                 x = "Hours",
+                 y = "Probability") +
+            theme_classic()
+        
+        fitted_model %>%
+          as_tibble() %>%
+            ggplot(aes(x = ,)) +
+            geom_histogram(aes(y = after_stat(count/sum(count))), 
+                           bins = 20, 
                            color = "white",
                            fill = "steelblue") +
             labs(title = "Posterior Probability Distribution",
@@ -117,5 +132,72 @@ fitted_model
 print(fitted_model, digits = 5)
 ```
 
+```{r}
+set.seed(30)
+        model_data <- crime_data %>%
+            select(law_cat_cd, cmplnt_to_tm) %>%
+            drop_na() %>%
+            mutate(time_chr = as.character(cmplnt_to_tm)) %>%
+            mutate(time_sub = map_chr(time_chr, ~ substr(., 1, 2))) %>%
+            mutate(time_numeric = as.numeric(time_sub)) %>%
+            select(law_cat_cd, time_numeric)
+        
+        fitted_model <- model_data %>%
+            stan_glm(formula = time_numeric ~ law_cat_cd - 1,
+                     family = gaussian(),
+                     refresh = 0)
+        
+        fitted_model %>% 
+            as_tibble() %>% 
+            select(-sigma) %>% 
+            mutate(Felony = law_cat_cdFELONY, Misdemeanor = law_cat_cdMISDEMEANOR, Violation = law_cat_cdVIOLATION) %>%
+            pivot_longer(cols = Felony:Violation,
+                         names_to = "parameter",
+                         values_to = "time") %>% 
+            ggplot(aes(x = time, fill = parameter)) +
+            geom_histogram(aes(y = after_stat(count/sum(count))),
+                           alpha = 0.8, 
+                           bins = 120, 
+                           position = "identity",
+                           color = "darkgrey") +
+            labs(title = "Posterior Probability Distribution",
+                 subtitle = "Average time of Crimes in NYC 2019 to 2020",
+                 x = "Time",
+                 y = "Probability") +
+            scale_fill_manual(name = "Level of Offense",
+                              labels = c("Felony", "Misdemeanor", "Violation"),
+                              values = c("steelblue", "cadetblue3", "azure3")) +
+            scale_y_continuous(labels = scales::percent_format()) +
+            theme_classic()
+        
+print(fitted_model, digits = 5)
+```
 
+```{r}
+crime_data %>%
+  select(law_cat_cd, ofns_desc) %>%
+  group_by(ofns_desc, law_cat_cd) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+```
+
+
+```{r}
+tibble(subject = c("Violation", "Misdemeanor ", "Violation"),
+       Median = c("12.49758", "13.02425", "13.89109"),
+       MAD_SD = c("0.02299", "0.01713", "0.03295")) %>%
+    
+    # table setup
+    gt() %>%
+    cols_label(subject = "Model",
+               Median = "Median",
+               MAD_SD = "MAD_SD") %>%
+    tab_style(cell_borders(sides = "right"),
+              location = cells_body(columns = vars(subject))) %>%
+    tab_style(cell_text(weight = "bold"),
+              location = cells_body(columns = vars(subject))) %>%
+    cols_align(align = "center", columns = TRUE) %>%
+    fmt_markdown(columns = TRUE) 
+
+```
 
