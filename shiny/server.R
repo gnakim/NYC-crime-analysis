@@ -172,16 +172,24 @@ shinyServer(function(input, output){
             theme_classic()
     })
     
-    gt_tbl <- tibble(subject = c("Felony", "Misdemeanor ", "Violation", "Sigma"),
-           Median = c("12.49758", "13.02425", "13.89109", "6.30854"),
-           MAD_SD = c("0.02299", "0.01713", "0.03295", "0.00891"))
-    
     output$modelTable <-render_gt({
         
-        expr = gt_tbl
-        height = px(600)
-        width = px(600)
-        
+        tibble(subject = c("Felony", "Misdemeanor ", "Violation", "Sigma"),
+               Median = c("12.49758", "13.02425", "13.89109", "6.30854"),
+               MAD_SD = c("0.02299", "0.01713", "0.03295", "0.00891")) %>%
+            
+            # table setup
+            
+            gt() %>%
+            cols_label(subject = "Model",
+                       Median = "Median",
+                       MAD_SD = "MAD_SD") %>%
+            tab_style(cell_borders(sides = "right"),
+                      location = cells_body(columns = vars(subject))) %>%
+            tab_style(cell_text(weight = "bold"),
+                      location = cells_body(columns = vars(subject))) %>%
+            cols_align(align = "center", columns = TRUE) %>%
+            fmt_markdown(columns = TRUE) 
     })
    
     
