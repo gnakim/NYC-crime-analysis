@@ -97,6 +97,8 @@ shinyServer(function(input, output){
             theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
     })
     
+    # Pipe the function into unique() to get rid of any repeated rows retained
+    # after summarize
     
     output$placePlot <- renderPlot({
         crime_data %>%

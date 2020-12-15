@@ -11,7 +11,6 @@ library(tidyverse)
 library(janitor)
 library(naniar)
 library(gt)
-
 ```
 
 ```{r load_data}
@@ -40,100 +39,36 @@ crime_data <- read_csv('shiny/NYPD_crime_data.csv',
          boro_nm, parks_nm, prem_typ_desc,cmplnt_to_dt, cmplnt_to_tm,
          crm_atpt_cptd_cd)
 
-# Take a look at your data by running the below code. There's more information regarding this data in raw_data/data_info
+# Take a look at your data by running the below code. There's more information
+# regarding this data in raw_data/data_info
+
 # glimpse(raw_data)
 # summary(raw_data)
 # head(raw_data, 10)
+
 ```
 
 ```{r clean_data}
 
-data <- raw_data %>%
-  clean_names() %>%
-  select(-c(addr_pct_cd, hadevelopt, housing_psa, transit_district, 
-             x_coord_cd:new_georeferenced_column, patrol_boro, pd_cd, pd_desc,
-            jurisdiction_code, ky_cd, cmplnt_to_dt, cmplnt_to_tm) )%>%
-  filter(juris_desc == "N.Y. POLICE DEPT")
-
-
-data_people <- raw_data %>%
-  clean_names() %>%
-  filter(juris_desc == "N.Y. POLICE DEPT") %>%
-  select(law_cat_cd, susp_age_group, susp_race, susp_sex, vic_age_group, vic_race, vic_sex, ofns_desc)
-
-data_people
-# Executed the below code to determine which Na values I should drop vs which columns I should just entirely drop.
+# Executed the below code to determine which Na values I should drop vs which 
+# columns I should just entirely drop.
 # colSums(is.na(data))
 
-# There was only one observation where vic_age_group was NA. This same observation was the only NA value in vic_race and vic_sex as well, so I dropped this individual NA observation.
+# There was only one observation where vic_age_group was NA. This same
+# observation was the only NA value in vic_race and vic_sex as well, so I
+# dropped this individual NA observation.
 
 colSums(is.na(data))
 
 ```
 
-```{r suspectplot}
-data %>%
-  select(susp_age_group, susp_race, susp_sex) %>%
-  filter(susp_age_group != "UNKNOWN", susp_race != "UNKNOWN", susp_sex != "U") %>%
-  filter(!(susp_age_group %in% c("-928", "-942", "-965", "1925", "2019"))) %>%
-  group_by(susp_race) %>%
-  summarise(count = n(), .groups = "drop") %>%
-  ggplot(aes(x = fct_reorder(susp_race, count), y = count)) +
-  geom_col() +
-  labs(title = "Characteristics of of Crime Suspects",
-           y = "Number of Crimes Committed within' Specified Group",
-           x = "susp_race") +
-  theme_bw()
-```
-
-```{r}
-head(crime_data, 10)
-model_data <- crime_data %>%
-  select(law_cat_cd, cmplnt_to_tm) %>%
-  drop_na() %>%
-  mutate(time_chr = as.character(cmplnt_to_tm)) %>%
-  mutate(time_sub = map_chr(time_chr, ~ substr(., 1, 2))) %>%
-  mutate(time_numeric = as.numeric(time_sub)) %>%
-  select(law_cat_cd, time_numeric)
-glimpse(model_data)
-
-
- fitted_model <- model_data %>%
-            stan_glm(formula = time_numeric ~ law_cat_cd - 1,
-                     family = gaussian(),
-                     refresh = 0) 
-fitted_model
-        fitted_model %>%
-          as_tibble() %>%
-            rename(mu = `(Intercept)`) %>% 
-            ggplot(aes(x = mu)) +
-            geom_histogram(aes(y = after_stat(count/sum(count))), 
-                           bins = 20, 
-                           color = "white",
-                           fill = "steelblue") +
-            labs(title = "Posterior Probability Distribution",
-                 subtitle = "Average Time Crime Takes Place",
-                 x = "Hours",
-                 y = "Probability") +
-            theme_classic()
-        
-        fitted_model %>%
-          as_tibble() %>%
-            ggplot(aes(x = ,)) +
-            geom_histogram(aes(y = after_stat(count/sum(count))), 
-                           bins = 20, 
-                           color = "white",
-                           fill = "steelblue") +
-            labs(title = "Posterior Probability Distribution",
-                 subtitle = "Average Time Crime Takes Place",
-                 x = "Hours",
-                 y = "Probability") +
-            theme_classic()
-print(fitted_model, digits = 5)
-```
 
 ```{r}
 set.seed(30)
+
+# Set the seed for consistent output
+# Convert date-time into a numeric after rounding by the hour
+
         model_data <- crime_data %>%
             select(law_cat_cd, cmplnt_to_tm) %>%
             drop_na() %>%
@@ -147,10 +82,14 @@ set.seed(30)
                      family = gaussian(),
                      refresh = 0)
         
+        # I created a posterior distribution below.
+        
         fitted_model %>% 
             as_tibble() %>% 
             select(-sigma) %>% 
-            mutate(Felony = law_cat_cdFELONY, Misdemeanor = law_cat_cdMISDEMEANOR, Violation = law_cat_cdVIOLATION) %>%
+            mutate(Felony = law_cat_cdFELONY, 
+                   Misdemeanor = law_cat_cdMISDEMEANOR, 
+                   Violation = law_cat_cdVIOLATION) %>%
             pivot_longer(cols = Felony:Violation,
                          names_to = "parameter",
                          values_to = "time") %>% 
@@ -174,6 +113,10 @@ print(fitted_model, digits = 5)
 ```
 
 ```{r}
+
+# Gives the count of all the different types of crimes committed
+# Pipe the data into arrange to see the top reported crimes
+
 crime_data %>%
   select(law_cat_cd, ofns_desc) %>%
   group_by(ofns_desc, law_cat_cd) %>%
@@ -183,11 +126,15 @@ crime_data %>%
 
 
 ```{r}
+
+# Create a gt table with the stan_glm data
+
 tibble(subject = c("Violation", "Misdemeanor ", "Violation"),
        Median = c("12.49758", "13.02425", "13.89109"),
        MAD_SD = c("0.02299", "0.01713", "0.03295")) %>%
     
     # table setup
+  
     gt() %>%
     cols_label(subject = "Model",
                Median = "Median",
