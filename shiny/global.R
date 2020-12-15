@@ -35,6 +35,7 @@ library(janitor)
 #          susp_race, susp_age_group, susp_sex, vic_race, vic_age_group, vic_sex,
 #          boro_nm, parks_nm, prem_typ_desc,cmplnt_to_dt, cmplnt_to_tm,
 #          crm_atpt_cptd_cd)
-#  
+
 # saveRDS(crime_data, "crime_data.RDS")
+
 

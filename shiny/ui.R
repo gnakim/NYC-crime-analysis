@@ -119,7 +119,7 @@ shinyUI(dashboardPage(
                                tags$a(href = "https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Current-Year-To-Date-/5uac-w243",
                                       "here!"),
                                "Variables referenced in the data tab are also 
-                               described at this link."),
+                               described at this link."), 
                              h3("About Me"),
                              p("Hi! My name is Geena Kim and I'm in the 
                              graduating class of 2023 at Harvard University. 
@@ -130,6 +130,6 @@ shinyUI(dashboardPage(
                                source code ",
                                tags$a(href = "https://github.com/gnakim",
                                       "here!"))))
-        )
+        ) 
     )
 ))
