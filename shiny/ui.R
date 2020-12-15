@@ -13,7 +13,7 @@ shinyUI(dashboardPage(
         # from a shiny icon gallery and shows which picture should show beside
         # the name on the tab.
         
-        sidebarUserPanel("NYC Crime Analysis 2019-2020"),
+        sidebarUserPanel("NYC Crime Analysis 1918-2020"),
         sidebarMenu(
             menuItem("Graphs", tabName = "data_comp", icon = icon("chart-bar")),
             menuItem("Data", tabName = "data", icon = icon("database")),
@@ -95,8 +95,7 @@ shinyUI(dashboardPage(
                                which violation crimes are reported. The to a 
                                high degree of preciseness within' the dataset. 
                                The median of the auxilary parameter, sigma, was 
-                               6.30854 while its MAD_SD was 0.00891"),
-                             gt_output("modelTable"))),
+                               6.30854 while its MAD_SD was 0.00891"))),
             
             # The tag for the data url stopped working when I introduced a line
             # break to it so I kept it as is, although it breaks the 80
